@@ -1,7 +1,7 @@
 %% Measurement mode module
 % -- this is the measurement mode module used to conduct the continuing
 % measurement when Lidar starts to measure the location
-function [mea_status,Lidar_trace,Lidar_expect_trace,rotation_trace,Lidar_update_Table,match_reflect_pool,matched_reflect_ID,reflector_index,match_detected_pool,matched_detect_ID,dist_err,angle_err,Reflector_map_wm,wm_reflect_ID,unmatched_detected_reflector,unmatched_detect_ID,matched_ref_ID_hist,matched_detect_ID_hist,map_rmse,reflector_rmse,xy_vel_acc] = measurement_mode(num_match_pool_orig,num_detect_pool,scan_freq,Reflector_map,Reflector_ID,measurement_data3,scan_data,moving_estimate,ref_gauss_data_fit,amp_thres,dist_thres,reflector_diameter,dist_delta,Lidar_trace,Lidar_expect_trace,rotation_trace,dist_err_trace,angle_err_trace,thres_dist_match,thres_dist_large,thres_angle_match,reflector_rmse)
+function [mea_status,Lidar_trace,Lidar_expect_trace,rotation_trace,Lidar_update_Table,match_reflect_pool,matched_reflect_ID,reflector_index,match_detected_pool,matched_detect_ID,dist_err,angle_err,Reflector_map_wm,wm_reflect_ID,unmatched_detected_reflector,unmatched_detect_ID,matched_ref_ID_hist,matched_detect_ID_hist,map_rmse,reflector_rmse,xy_vel_acc] = measurement_mode(num_match_pool_orig,num_detect_pool,scan_freq,Reflector_map,Reflector_ID,measurement_data3,scan_data,moving_estimate,ref_gauss_data_fit,amp_thres,dist_thres,reflector_diameter,dist_delta,Lidar_trace,Lidar_expect_trace,rotation_trace,dist_err_trace,angle_err_trace,thres_dist_match,thres_dist_large,thres_angle_match,reflector_rmse,matched_ref_ID_hist,matched_detect_ID_hist)
 %% 1. Read the scan data, identify reflectors and define how many scanned reflectors are used from the list(nearest distance or most distingushed).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % identify the variables
@@ -219,7 +219,8 @@ if match_result == 0
     end
 elseif match_result == 1
     disp('Bad data and wait for another scan data, use previous data.....');
-        reflector_rmse=99.99;
+        reflector_rmse=999.99;
+        map_rmse=999.99
         Lidar_update_Table=0;
         match_reflect_pool=0;
         matched_reflect_ID=0;   
@@ -244,7 +245,7 @@ elseif reflector_rmse>1 && reflector_rmse<10
     mea_status=1;
 elseif reflector_rmse>10 && reflector_rmse<99.99
     mea_status=2;
-elseif reflector_rmse==99.99
+elseif reflector_rmse==999.99
     mea_status=3;
 else
     mea_status=4;

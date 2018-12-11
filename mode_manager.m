@@ -17,8 +17,8 @@ function [mode,status] = mode_manager(interrupt,scan_freq,reflector_source_flag,
 %% -Reflector_map:          load Reflector map from GUI console
 %% -scan_data:              load 3D Lidar data to module
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%global matched_ref_ID_hist;
-%global matched_detect_ID_hist;
+matched_ref_ID_hist=0;
+matched_detect_ID_hist=0;
 %global xy_vel_acc;
 %global map_rmse;
 %global reflector_rmse;
@@ -32,7 +32,7 @@ acc_trace = [0 0];
 
     %fname_moving = ['Data/3/Lidar_data.txt']; % Load moving data to test moving compensation algorithm
     fname_moving = ['Data/20hz/20hz/Lidar_data.txt']; % Load moving data to test moving compensation algorithm    
-    mode='cali';
+    mode=1;
     [Lidar_data,data_length,data_round]=load_continous_scan_data(fname_moving,mode);
     scan_data=Lidar_data;
     %% -- Read map from data
@@ -79,7 +79,7 @@ tlapsed_cali=toc(tstart_cali);  % monitor calibration running time
     scan_freq;
     b=1;
 %-- read the meas data
-    mode='meas';
+    mode=2;
     [Lidar_data,data_length,data_round]=load_continous_scan_data(fname_moving,mode);
     scan_data=Lidar_data;
     dist_err=zeros(1,num_detect_pool);
@@ -92,21 +92,21 @@ tlapsed_cali=toc(tstart_cali);  % monitor calibration running time
 % This mode will use moving estimation to reduce the errors generated
 % during AGV is moving at the fast speed.
 %-- read the rest of scan data
-    mode='movi';
+    mode=3;
     moving_thres=200;   
     rot_angle_thres=0.25;
     [Lidar_data_total,data_length,data_round]=load_continous_scan_data(fname_moving,mode);
     minTime=Inf;
     tic;
- for ii=3:20  % 87 is the bad point?
+ for ii=3:200  % 87 is the bad point?
     tstart=tic;
     %--Call moving mode to calculate expected pose and location
     Lidar_data = Lidar_data_total(:,(ii-1)*data_length:ii*data_length);
     [measurement_data4,scan_data]=PolarToRect(Lidar_data);
    %%-- Plot raw data
-    plot_Lidar_data(measurement_data4)
+    plot_Lidar_data(measurement_data4);
    %[moving_status,Lidar_trace,rotation_trace] = moving_mode(moving_thres,rot_angle_thres,amp_thres,reflector_diameter,dist_delta,Reflector_map,Reflector_ID,measurement_data4,scan_data,match_reflect_pool,match_reflect_ID,reflector_index,pose_his,thres_dist_match,thres_dist_large)
-    [mea_status,Lidar_trace,Lidar_expect_trace,rotation_trace,Lidar_update_Table,match_reflect_pool,match_reflect_ID,reflector_index,detected_reflector,detected_ID,dist_err,angle_err,wm_detected_reflector,wm_detected_ID,unmatched_detected_reflector,unmatched_detect_ID,matched_ref_ID_hist,matched_detect_ID_hist,map_rmse,reflector_rmse,xy_vel_acc] = measurement_mode(num_ref_pool,num_detect_pool,scan_freq,Reflector_map,Reflector_ID,measurement_data4,scan_data,moving_estimate,ref_gauss_data_fit,amp_thres,dist_thres,reflector_diameter,dist_delta,Lidar_trace,Lidar_expect_trace,rotation_trace,dist_err,angle_err,thres_dist_match,thres_dist_large,thres_angle_match,reflector_rmse);
+    [mea_status,Lidar_trace,Lidar_expect_trace,rotation_trace,Lidar_update_Table,match_reflect_pool,match_reflect_ID,reflector_index,detected_reflector,detected_ID,dist_err,angle_err,wm_detected_reflector,wm_detected_ID,unmatched_detected_reflector,unmatched_detect_ID,matched_ref_ID_hist,matched_detect_ID_hist,map_rmse,reflector_rmse,xy_vel_acc] = measurement_mode(num_ref_pool,num_detect_pool,scan_freq,Reflector_map,Reflector_ID,measurement_data4,scan_data,moving_estimate,ref_gauss_data_fit,amp_thres,dist_thres,reflector_diameter,dist_delta,Lidar_trace,Lidar_expect_trace,rotation_trace,dist_err,angle_err,thres_dist_match,thres_dist_large,thres_angle_match,reflector_rmse,matched_ref_ID_hist,matched_detect_ID_hist);
     ii
     tlapsed_m(ii)=toc(tstart);
     minTime=min(tlapsed_m(ii),minTime);
@@ -133,7 +133,7 @@ tlapsed_cali=toc(tstart_cali);  % monitor calibration running time
             wm_detected_ID=wm_detected_ID';
             Plot_world_map(Lidar_update_Table,match_reflect_pool,match_reflect_ID,wm_detected_reflector,wm_detected_ID,Lidar_trace);
        %%%%%%%%% plot velocity and acceleration along x and y 
-       [vel_update,vel_trace,acc_trace,rmse_trace,dist_err_trace,angle_err_trace,ref_ID_hist]=update_data_trace(xy_vel_acc,vel_trace,acc_trace,reflector_rmse,rmse_trace,matched_ref_ID_hist,ref_ID_hist,dist_err,dist_err_trace,angle_err,angle_err_trace)
+       [vel_update,vel_trace,acc_trace,rmse_trace,dist_err_trace,angle_err_trace,ref_ID_hist]=update_data_trace(xy_vel_acc,vel_trace,acc_trace,reflector_rmse,rmse_trace,matched_ref_ID_hist,ref_ID_hist,dist_err,dist_err_trace,angle_err,angle_err_trace);
    end
  end
 
@@ -164,6 +164,5 @@ figure(66);
  rotation_trace
  Lidar_trace
  Lidar_expect_trace
- %figure(200);histogram(ref_ID_hist)
  status='done';
  %%%%%%%%%%%%%%%%%%% . Plot Velocity and Acceleration
